@@ -1,3 +1,16 @@
+use clap::Parser;
+use aheui::AheuiGrid;
+
+/// Aheui interpreter & compiler
+#[derive(Parser, Debug)]
+#[command(version)]
+struct Args {
+    /// Source path
+    input: String,
+}
+
 fn main() {
-    println!("Hello, world!");
+    let args = Args::parse();
+    let source = std::fs::read_to_string(args.input).expect("Could not read from input file");
+    println!("{:?}", AheuiGrid::new(source));
 }

@@ -1,5 +1,5 @@
-use clap::Parser;
 use aheui::AheuiGrid;
+use clap::Parser;
 
 /// Aheui interpreter & compiler
 #[derive(Parser, Debug)]

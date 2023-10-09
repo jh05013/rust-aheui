@@ -1,7 +1,7 @@
 use crate::가명::*;
 use panic as 겁먹기;
 
-#[derive(복제, 디버그, 부분같음, 같음)]
+#[derive(복사, 복제, 디버그, 부분같음, 같음)]
 pub enum 초성 {
     ㄱ,
     ㄲ,
@@ -52,7 +52,7 @@ impl From<u32> for 초성 {
     }
 }
 
-#[derive(복제, 디버그, 부분같음, 같음)]
+#[derive(복사, 복제, 디버그, 부분같음, 같음)]
 pub enum 중성 {
     ㅏ,
     ㅐ,
@@ -107,7 +107,7 @@ impl From<u32> for 중성 {
     }
 }
 
-#[derive(복제, 디버그, 부분같음, 같음)]
+#[derive(복사, 복제, 디버그, 부분같음, 같음)]
 pub enum 종성 {
     없음,
     ㄱ,

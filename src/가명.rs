@@ -18,5 +18,6 @@ pub use Result::{self as 결과, Err as 에러, Ok as 좋음};
 pub use String as 문자열;
 pub use Vec as 벡;
 
+pub use std::io::stdin as 표준입력;
 pub use std::io::stdout as 표준출력;
 pub use std::io::BufWriter as 버퍼출력;

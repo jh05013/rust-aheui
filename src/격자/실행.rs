@@ -10,6 +10,8 @@ use super::{
 };
 use 벡 as 통로;
 
+use crate::입력기::InputReader as 아희읽음;
+
 type 종료코드 = i32;
 
 pub trait 저장공간: 디버그 {
@@ -276,7 +278,7 @@ impl 저장공간묶음 {
 }
 
 #[derive(복제)]
-pub struct 아희실행기<ㅆ: 씀> {
+pub struct 아희실행기<ㅇ: 읽음, ㅆ: 씀> {
     행: i크기,
     열: i크기,
     속도: 속도,
@@ -286,11 +288,12 @@ pub struct 아희실행기<ㅆ: 씀> {
 
     행수: i크기,
     열수: i크기,
+    입력기: 아희읽음<ㅇ>,
     출력기: ㅆ,
     종료: 옵션<종료코드>,
 }
 
-impl<ㅆ: 씀> 디버그 for 아희실행기<ㅆ> {
+impl<ㅇ: 읽음, ㅆ: 씀> 디버그 for 아희실행기<ㅇ, ㅆ> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("아희실행기")
             .field("행", &self.행)
@@ -303,8 +306,8 @@ impl<ㅆ: 씀> 디버그 for 아희실행기<ㅆ> {
     }
 }
 
-impl<ㅆ: 씀> 아희실행기<ㅆ> {
-    pub fn 새로(출력기: ㅆ) -> Self {
+impl<ㅇ: 읽음, ㅆ: 씀> 아희실행기<ㅇ, ㅆ> {
+    pub fn 새로(입력기: ㅇ, 출력기: ㅆ) -> Self {
         Self {
             행: 0,
             열: 0,
@@ -315,6 +318,7 @@ impl<ㅆ: 씀> 아희실행기<ㅆ> {
 
             행수: 0,
             열수: 0,
+            입력기: 아희읽음::with_capacity(8192, 입력기),
             출력기,
             종료: 없음,
         }
@@ -367,12 +371,21 @@ impl<ㅆ: 씀> 아희실행기<ㅆ> {
                 }
             }
             집어넣기(인자) => {
-                let 값 = match 인자 {
-                    집어넣기인자::입력(_인자) => todo!(),
-                    집어넣기인자::상수(값) => *값,
+                let 아마값 = match 인자 {
+                    집어넣기인자::입력(입출력인자::십진수) => {
+                        self.입력기.read_integer()
+                    }
+                    집어넣기인자::입력(입출력인자::유니코드) => {
+                        self.입력기.read_char().map(|글자| 글자 as u32 as i64)
+                    }
+                    집어넣기인자::상수(값) => 있음(*값),
                 };
-                self.저장공간().집어넣기(값);
-                true
+                if let 있음(값) = 아마값 {
+                    self.저장공간().집어넣기(값);
+                    true
+                } else {
+                    false
+                }
             }
             중복 => self.저장공간().중복(),
             바꿔치기 => self.저장공간().바꿔치기(),
@@ -407,8 +420,7 @@ impl<ㅆ: 씀> 아희실행기<ㅆ> {
 
     fn 명령_읽기<'a>(&mut self, 격자: &'a 아희격자) -> &'a 한글명령 {
         loop {
-            let 행 = self.행 as usize;
-            let 있음(줄) = 격자.get(행)
+            let 있음(줄) = 격자.get(self.행 as usize)
             else {
                 self.이동();
                 if self.행 < 0 { self.행 += self.행수; }
@@ -429,9 +441,27 @@ impl<ㅆ: 씀> 아희실행기<ㅆ> {
     pub fn 실행(&mut self, 격자: &아희격자) -> 종료코드 {
         self.행수 = 격자.len() as isize;
         self.열수 = 격자.iter().map(|줄| 줄.len()).max().unwrap_or(1) as isize;
+        #[cfg(debug_assert)]
+        println!("{} x {}", self.행수, self.열수);
         loop {
             let 명 = self.명령_읽기(격자);
+            #[cfg(debug_assert)]
+            println!("{self:?}");
+            #[cfg(debug_assert)]
+            println!("{명:?}");
             self.처리(명);
+            if self.행 < 0 {
+                self.행 += self.행수;
+            }
+            if self.행 >= self.행수 {
+                self.행 -= self.행수;
+            }
+            if self.열 < 0 {
+                self.열 += self.열수;
+            }
+            if self.열 >= self.열수 {
+                self.열 -= self.열수;
+            }
             if let 있음(종료_코드) = self.종료 {
                 return 종료_코드;
             }

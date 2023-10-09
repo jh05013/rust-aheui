@@ -192,9 +192,9 @@ pub fn 한글_분해하기(글자: 문자) -> 옵션<(초성, 중성, 종성)> {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct 한글문자 {
-    초성: 초성,
-    중성: 중성,
-    종성: 종성,
+    pub 초성: 초성,
+    pub 중성: 중성,
+    pub 종성: 종성,
 }
 
 impl TryFrom<문자> for 한글문자 {

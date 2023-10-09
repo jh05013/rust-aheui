@@ -1,14 +1,26 @@
-use crate::{가명::*, 격자::한글명령::속도변환, 한글::종성};
+use crate::{
+    가명::*,
+    격자::한글명령::{속도변환, 입출력인자},
+    한글::종성,
+};
 
 use super::{
-    한글명령::{속도, 한글명령},
+    한글명령::{속도, 집어넣기인자, 한글명령},
     해독::아희격자,
 };
 use 벡 as 통로;
 
 pub trait 저장공간: std::fmt::Debug {
     fn 종료_코드(&self) -> 종료코드;
+    fn 뽑기(&mut self) -> 옵션<i64>;
+    fn 집어넣기(&mut self, 값: i64);
     fn 덧셈(&mut self) -> 부울;
+    fn 곱셈(&mut self) -> 부울;
+    fn 뺄셈(&mut self) -> 부울;
+    fn 나눗셈(&mut self) -> 부울;
+    fn 나머지(&mut self) -> 부울;
+    fn 중복(&mut self) -> 부울;
+    fn 바꿔치기(&mut self) -> 부울;
 }
 
 impl 저장공간 for 벡<i64> {
@@ -20,12 +32,74 @@ impl 저장공간 for 벡<i64> {
         종료코드::from(코드)
     }
 
+    fn 뽑기(&mut self) -> 옵션<i64> {
+        self.pop()
+    }
+
+    fn 집어넣기(&mut self, 값: i64) {
+        self.push(값)
+    }
+
     fn 덧셈(&mut self) -> 부울 {
         if self.len() < 2 {
             return false;
         }
         let 첫 = self.pop().unwrap();
         *self.last_mut().unwrap() += 첫;
+        true
+    }
+
+    fn 곱셈(&mut self) -> bool {
+        if self.len() < 2 {
+            return false;
+        }
+        let 첫 = self.pop().unwrap();
+        *self.last_mut().unwrap() *= 첫;
+        true
+    }
+
+    fn 뺄셈(&mut self) -> bool {
+        if self.len() < 2 {
+            return false;
+        }
+        let 첫 = self.pop().unwrap();
+        *self.last_mut().unwrap() -= 첫;
+        true
+    }
+
+    fn 나눗셈(&mut self) -> bool {
+        if self.len() < 2 {
+            return false;
+        }
+        let 첫 = self.pop().unwrap();
+        *self.last_mut().unwrap() /= 첫;
+        true
+    }
+
+    fn 나머지(&mut self) -> bool {
+        if self.len() < 2 {
+            return false;
+        }
+        let 첫 = self.pop().unwrap();
+        *self.last_mut().unwrap() %= 첫;
+        true
+    }
+
+    fn 중복(&mut self) -> bool {
+        if let 있음(값) = self.last() {
+            self.집어넣기(*값);
+            true
+        } else {
+            false
+        }
+    }
+
+    fn 바꿔치기(&mut self) -> bool {
+        let 길이 = self.len();
+        if 길이 < 2 {
+            return false;
+        }
+        self.swap(길이 - 2, 길이 - 1);
         true
     }
 }
@@ -39,12 +113,76 @@ impl 저장공간 for 벡데크<i64> {
         종료코드::from(코드)
     }
 
+    fn 뽑기(&mut self) -> 옵션<i64> {
+        self.pop_back()
+    }
+
+    fn 집어넣기(&mut self, 값: i64) {
+        self.push_back(값)
+    }
+
     fn 덧셈(&mut self) -> 부울 {
         if self.len() < 2 {
             return false;
         }
         let 첫 = self.pop_back().unwrap();
         *self.back_mut().unwrap() += 첫;
+        true
+    }
+
+    fn 곱셈(&mut self) -> bool {
+        if self.len() < 2 {
+            return false;
+        }
+        let 첫 = self.pop_back().unwrap();
+        *self.back_mut().unwrap() *= 첫;
+        true
+    }
+
+    fn 뺄셈(&mut self) -> bool {
+        if self.len() < 2 {
+            return false;
+        }
+        let 첫 = self.pop_back().unwrap();
+        *self.back_mut().unwrap() -= 첫;
+        true
+    }
+
+    fn 나눗셈(&mut self) -> bool {
+        if self.len() < 2 {
+            return false;
+        }
+        let 첫 = self.pop_back().unwrap();
+        *self.back_mut().unwrap() /= 첫;
+        true
+    }
+
+    fn 나머지(&mut self) -> bool {
+        if self.len() < 2 {
+            return false;
+        }
+        let 첫 = self.pop_back().unwrap();
+        *self.back_mut().unwrap() %= 첫;
+        true
+    }
+
+    fn 중복(&mut self) -> bool {
+        if let 있음(값) = self.back() {
+            self.집어넣기(*값);
+            true
+        } else {
+            false
+        }
+    }
+
+    fn 바꿔치기(&mut self) -> bool {
+        if self.len() < 2 {
+            return false;
+        }
+        let 첫 = self.pop_back().unwrap();
+        let 두 = self.pop_back().unwrap();
+        self.push_back(두);
+        self.push_back(첫);
         true
     }
 }
@@ -118,24 +256,43 @@ impl 저장공간묶음 {
     }
 }
 
-#[derive(복제, 디버그)]
-pub struct 아희실행기 {
+#[derive(복제)]
+pub struct 아희실행기<ㅆ: 씀> {
     행: i크기,
     열: i크기,
     속도: 속도,
+
     지금: 종성,
     저장공간묶음: 저장공간묶음,
+
+    출력기: ㅆ,
     종료: 옵션<종료코드>,
 }
 
-impl 아희실행기 {
-    pub fn 새로() -> Self {
+impl<ㅆ: 씀> std::fmt::Debug for 아희실행기<ㅆ> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("아희실행기")
+            .field("행", &self.행)
+            .field("열", &self.열)
+            .field("속도", &self.속도)
+            .field("지금", &self.지금)
+            .field("저장공간묶음", &self.저장공간묶음)
+            .field("종료", &self.종료)
+            .finish()
+    }
+}
+
+impl<ㅆ: 씀> 아희실행기<ㅆ> {
+    pub fn 새로(출력기: ㅆ) -> Self {
         Self {
             행: 0,
             열: 0,
             속도: 속도::ㅜ,
+
             지금: 종성::없음,
             저장공간묶음: 저장공간묶음::default(),
+
+            출력기,
             종료: 없음,
         }
     }
@@ -164,16 +321,40 @@ impl 아희실행기 {
                 return;
             }
             덧셈 => self.저장공간().덧셈(),
-            곱셈 => todo!(),
-            뺄셈 => todo!(),
-            나눗셈 => todo!(),
-            나머지 => todo!(),
-            뽑기(인자) => todo!(),
-            집어넣기(인자) => todo!(),
-            중복 => todo!(),
-            바꿔치기 => todo!(),
-            선택(종성) => todo!(),
-            이동(종성) => todo!(),
+            곱셈 => self.저장공간().곱셈(),
+            뺄셈 => self.저장공간().뺄셈(),
+            나눗셈 => self.저장공간().나눗셈(),
+            나머지 => self.저장공간().나머지(),
+            뽑기(인자) => {
+                if let 있음(값) = self.저장공간().뽑기() {
+                    match 인자 {
+                        없음 => {}
+                        있음(입출력인자::십진수) => {
+                            let _ = write!(self.출력기, "{값}");
+                        }
+                        있음(입출력인자::유니코드) => {
+                            if let 있음(문자) = char::from_u32(값 as u32) {
+                                let _ = write!(self.출력기, "{문자}");
+                            }
+                        }
+                    }
+                    true
+                } else {
+                    false
+                }
+            }
+            집어넣기(인자) => {
+                let 값 = match 인자 {
+                    집어넣기인자::입력(_인자) => todo!(),
+                    집어넣기인자::상수(값) => *값,
+                };
+                self.저장공간().집어넣기(값);
+                true
+            }
+            중복 => self.저장공간().중복(),
+            바꿔치기 => self.저장공간().바꿔치기(),
+            선택(_종성) => todo!(),
+            이동(_종성) => todo!(),
             비교 => todo!(),
             조건 => todo!(),
         };
@@ -185,12 +366,11 @@ impl 아희실행기 {
         self.이동();
     }
 
-    fn 명령_읽기<'ㄱ>(&mut self, 격자: &'ㄱ 아희격자) -> &'ㄱ 한글명령 {
+    fn 명령_읽기<'a>(&mut self, 격자: &'a 아희격자) -> &'a 한글명령 {
         loop {
             let 행 = self.행 as usize;
             let 있음(줄) = 격자.get(행)
 			else {
-				println!("{self:?}에서 읽기 실패!");
 				let 행수 = 격자.len() as i크기;
 				self.이동();
 				if self.행 < 0 { self.행 += 행수; }
@@ -199,7 +379,6 @@ impl 아희실행기 {
 			};
             let 있음(명) = 줄.get(self.열 as usize)
 			else {
-				println!("{self:?}에서 읽기 실패!");
 				let 행수 = 격자.len() as i크기;
 				let 열수 = 줄.len() as i크기;
 				self.이동();
@@ -217,9 +396,6 @@ impl 아희실행기 {
         loop {
             let 명 = self.명령_읽기(격자);
             self.처리(명);
-
-            println!("{self:?}");
-
             if let 있음(종료_코드) = self.종료 {
                 return 종료_코드;
             }

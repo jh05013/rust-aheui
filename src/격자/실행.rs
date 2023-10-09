@@ -310,10 +310,10 @@ impl<ㅆ: 씀> 아희실행기<ㅆ> {
     pub fn 처리(&mut self, 글자: &한글명령) {
         use super::한글명령::명령::*;
         let 있음(명령) = &글자.명령 else {
-			self.속도.처리(글자.속도변환);
-			self.이동();
-			return;
-		};
+            self.속도.처리(글자.속도변환);
+            self.이동();
+            return;
+        };
 
         let 성공 = match 명령 {
             끝냄 => {
@@ -370,24 +370,24 @@ impl<ㅆ: 씀> 아희실행기<ㅆ> {
         loop {
             let 행 = self.행 as usize;
             let 있음(줄) = 격자.get(행)
-			else {
-				let 행수 = 격자.len() as i크기;
-				self.이동();
-				if self.행 < 0 { self.행 += 행수; }
-				if self.행 >= 행수 { self.행 -= 행수; }
-				continue;
-			};
+            else {
+                let 행수 = 격자.len() as i크기;
+                self.이동();
+                if self.행 < 0 { self.행 += 행수; }
+                if self.행 >= 행수 { self.행 -= 행수; }
+                continue;
+            };
             let 있음(명) = 줄.get(self.열 as usize)
-			else {
-				let 행수 = 격자.len() as i크기;
-				let 열수 = 줄.len() as i크기;
-				self.이동();
-				if self.행 < 0 { self.행 += 행수; }
-				if self.행 >= 행수 { self.행 -= 행수; }
-				if self.열 < 0 { self.열 += 열수; }
-				if self.열 >= 열수 { self.열 -= 열수; }
-				continue;
-			};
+            else {
+                let 행수 = 격자.len() as i크기;
+                let 열수 = 줄.len() as i크기;
+                self.이동();
+                if self.행 < 0 { self.행 += 행수; }
+                if self.행 >= 행수 { self.행 -= 행수; }
+                if self.열 < 0 { self.열 += 열수; }
+                if self.열 >= 열수 { self.열 -= 열수; }
+                continue;
+            };
             return 명;
         }
     }

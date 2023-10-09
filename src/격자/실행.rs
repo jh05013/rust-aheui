@@ -10,7 +10,9 @@ use super::{
 };
 use 벡 as 통로;
 
-pub trait 저장공간: std::fmt::Debug {
+type 종료코드 = i32;
+
+pub trait 저장공간: 디버그 {
     fn 종료_코드(&self) -> 종료코드;
     fn 뽑기(&mut self) -> 옵션<i64>;
     fn 집어넣기(&mut self, 값: i64);
@@ -21,15 +23,14 @@ pub trait 저장공간: std::fmt::Debug {
     fn 나머지(&mut self) -> 부울;
     fn 중복(&mut self) -> 부울;
     fn 바꿔치기(&mut self) -> 부울;
+    fn 비교(&mut self) -> 부울;
 }
 
 impl 저장공간 for 벡<i64> {
     fn 종료_코드(&self) -> 종료코드 {
-        let 코드 = self
-            .last()
+        self.last()
             .map(|&수| 수.try_into().unwrap_or(255))
-            .unwrap_or(0);
-        종료코드::from(코드)
+            .unwrap_or(0)
     }
 
     fn 뽑기(&mut self) -> 옵션<i64> {
@@ -102,15 +103,23 @@ impl 저장공간 for 벡<i64> {
         self.swap(길이 - 2, 길이 - 1);
         true
     }
+
+    fn 비교(&mut self) -> bool {
+        if self.len() < 2 {
+            return false;
+        }
+        let 첫 = self.pop().unwrap();
+        let 두 = self.last_mut().unwrap();
+        *두 = (*두 >= 첫) as i64;
+        true
+    }
 }
 
 impl 저장공간 for 벡데크<i64> {
     fn 종료_코드(&self) -> 종료코드 {
-        let 코드 = self
-            .back()
+        self.back()
             .map(|&수| 수.try_into().unwrap_or(255))
-            .unwrap_or(0);
-        종료코드::from(코드)
+            .unwrap_or(0)
     }
 
     fn 뽑기(&mut self) -> 옵션<i64> {
@@ -183,6 +192,16 @@ impl 저장공간 for 벡데크<i64> {
         let 두 = self.pop_back().unwrap();
         self.push_back(두);
         self.push_back(첫);
+        true
+    }
+
+    fn 비교(&mut self) -> bool {
+        if self.len() < 2 {
+            return false;
+        }
+        let 첫 = self.pop_back().unwrap();
+        let 두 = self.back_mut().unwrap();
+        *두 = (*두 >= 첫) as i64;
         true
     }
 }
@@ -265,11 +284,13 @@ pub struct 아희실행기<ㅆ: 씀> {
     지금: 종성,
     저장공간묶음: 저장공간묶음,
 
+    행수: i크기,
+    열수: i크기,
     출력기: ㅆ,
     종료: 옵션<종료코드>,
 }
 
-impl<ㅆ: 씀> std::fmt::Debug for 아희실행기<ㅆ> {
+impl<ㅆ: 씀> 디버그 for 아희실행기<ㅆ> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("아희실행기")
             .field("행", &self.행)
@@ -292,6 +313,8 @@ impl<ㅆ: 씀> 아희실행기<ㅆ> {
             지금: 종성::없음,
             저장공간묶음: 저장공간묶음::default(),
 
+            행수: 0,
+            열수: 0,
             출력기,
             종료: 없음,
         }
@@ -353,10 +376,26 @@ impl<ㅆ: 씀> 아희실행기<ㅆ> {
             }
             중복 => self.저장공간().중복(),
             바꿔치기 => self.저장공간().바꿔치기(),
-            선택(_종성) => todo!(),
-            이동(_종성) => todo!(),
-            비교 => todo!(),
-            조건 => todo!(),
+            선택(종성) => {
+                self.지금 = *종성;
+                true
+            }
+            이동(종성) => {
+                if let 있음(값) = self.저장공간().뽑기() {
+                    self.저장공간묶음.고르기(*종성).집어넣기(값);
+                    true
+                } else {
+                    false
+                }
+            }
+            비교 => self.저장공간().비교(),
+            조건 => {
+                if let 있음(값) = self.저장공간().뽑기() {
+                    값 != 0
+                } else {
+                    false
+                }
+            }
         };
 
         self.속도.처리(글자.속도변환);
@@ -371,21 +410,16 @@ impl<ㅆ: 씀> 아희실행기<ㅆ> {
             let 행 = self.행 as usize;
             let 있음(줄) = 격자.get(행)
             else {
-                let 행수 = 격자.len() as i크기;
                 self.이동();
-                if self.행 < 0 { self.행 += 행수; }
-                if self.행 >= 행수 { self.행 -= 행수; }
+                if self.행 < 0 { self.행 += self.행수; }
+                if self.행 >= self.행수 { self.행 -= self.행수; }
                 continue;
             };
             let 있음(명) = 줄.get(self.열 as usize)
             else {
-                let 행수 = 격자.len() as i크기;
-                let 열수 = 줄.len() as i크기;
                 self.이동();
-                if self.행 < 0 { self.행 += 행수; }
-                if self.행 >= 행수 { self.행 -= 행수; }
-                if self.열 < 0 { self.열 += 열수; }
-                if self.열 >= 열수 { self.열 -= 열수; }
+                if self.열 < 0 { self.열 += self.열수; }
+                if self.열 >= self.열수 { self.열 -= self.열수; }
                 continue;
             };
             return 명;
@@ -393,6 +427,8 @@ impl<ㅆ: 씀> 아희실행기<ㅆ> {
     }
 
     pub fn 실행(&mut self, 격자: &아희격자) -> 종료코드 {
+        self.행수 = 격자.len() as isize;
+        self.열수 = 격자.iter().map(|줄| 줄.len()).max().unwrap_or(1) as isize;
         loop {
             let 명 = self.명령_읽기(격자);
             self.처리(명);

@@ -1,3 +1,5 @@
+#![allow(uncommon_codepoints)]
+
 #[path = "한글.rs"]
 pub mod 한글;
 

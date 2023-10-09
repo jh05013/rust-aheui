@@ -75,6 +75,12 @@ pub struct 한글명령 {
     pub 속도변환: 속도변환,
 }
 
+impl 기본 for 한글명령 {
+    fn default() -> Self {
+        Self { 명령: 없음, 속도변환: 속도변환::유지 }
+    }
+}
+
 impl From<한글문자> for 한글명령 {
     fn from(글자: 한글문자) -> Self {
         let (초, 중, 종) = (글자.초성, 글자.중성, 글자.종성);
@@ -158,11 +164,11 @@ impl From<한글문자> for 한글명령 {
     }
 }
 
-impl TryFrom<문자> for 한글명령 {
-    type Error = 문자;
-
-    fn try_from(글자: 문자) -> 결과<Self, Self::Error> {
-        좋음(한글문자::try_from(글자)?.into())
+impl From<문자> for 한글명령 {
+    fn from(글자: 문자) -> Self {
+		TryInto::<한글문자>::try_into(글자)
+			.map(|글자| 글자.into())
+			.unwrap_or_default()
     }
 }
 

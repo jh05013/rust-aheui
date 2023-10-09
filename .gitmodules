@@ -1,0 +1,3 @@
+[submodule "examples/snippets"]
+	path = examples/snippets
+	url = git@github.com:aheui/snippets.git

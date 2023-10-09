@@ -182,12 +182,32 @@ pub fn 한글_분해하기(글자: 문자) -> 옵션<(초성, 중성, 종성)> {
     if !('가'..='힣').contains(&글자) {
         return 없음;
     }
-	let 번 = 글자 as u32;
+    let 번 = 글자 as u32;
     let 번 = 번 - 44032;
     let 초 = 번 / 588;
     let 중 = (번 / 28) % 21;
     let 종 = 번 % 28;
     있음((초.into(), 중.into(), 종.into()))
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct 한글문자 {
+    초성: 초성,
+    중성: 중성,
+    종성: 종성,
+}
+
+impl TryFrom<문자> for 한글문자 {
+    type Error = char;
+
+    fn try_from(글자: 문자) -> Result<Self, Self::Error> {
+        match 한글_분해하기(글자) {
+            있음((초성, 중성, 종성)) => Ok(한글문자 {
+                초성, 중성, 종성
+            }),
+            없음 => Err(글자),
+        }
+    }
 }
 
 #[cfg(test)]

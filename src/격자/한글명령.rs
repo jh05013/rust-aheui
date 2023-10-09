@@ -77,7 +77,10 @@ pub struct 한글명령 {
 
 impl 기본 for 한글명령 {
     fn default() -> Self {
-        Self { 명령: 없음, 속도변환: 속도변환::유지 }
+        Self {
+            명령: 없음,
+            속도변환: 속도변환::유지,
+        }
     }
 }
 
@@ -166,9 +169,9 @@ impl From<한글문자> for 한글명령 {
 
 impl From<문자> for 한글명령 {
     fn from(글자: 문자) -> Self {
-		TryInto::<한글문자>::try_into(글자)
-			.map(|글자| 글자.into())
-			.unwrap_or_default()
+        TryInto::<한글문자>::try_into(글자)
+            .map(|글자| 글자.into())
+            .unwrap_or_default()
     }
 }
 

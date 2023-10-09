@@ -1,9 +1,7 @@
-use char as 문자;
-use Option as 옵션;
-use Option::None as 없음;
-use Option::Some as 있음;
+use crate::가명::*;
+use panic as 겁먹기;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(복제, 디버그, 부분같음, 같음)]
 pub enum 초성 {
     ㄱ,
     ㄲ,
@@ -27,9 +25,9 @@ pub enum 초성 {
 }
 
 impl From<u32> for 초성 {
-    fn from(value: u32) -> Self {
+    fn from(값: u32) -> Self {
         use 초성::*;
-        match value {
+        match 값 {
             0 => ㄱ,
             1 => ㄲ,
             2 => ㄴ,
@@ -49,12 +47,12 @@ impl From<u32> for 초성 {
             16 => ㅌ,
             17 => ㅍ,
             18 => ㅎ,
-            _ => unreachable!(),
+            _ => 겁먹기!("{값}을 초성으로 바꿀 수 없습니다."),
         }
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(복제, 디버그, 부분같음, 같음)]
 pub enum 중성 {
     ㅏ,
     ㅐ,
@@ -80,9 +78,9 @@ pub enum 중성 {
 }
 
 impl From<u32> for 중성 {
-    fn from(value: u32) -> Self {
+    fn from(값: u32) -> Self {
         use 중성::*;
-        match value {
+        match 값 {
             0 => ㅏ,
             1 => ㅐ,
             2 => ㅑ,
@@ -104,12 +102,12 @@ impl From<u32> for 중성 {
             18 => ㅡ,
             19 => ㅢ,
             20 => ㅣ,
-            _ => unreachable!(),
+            _ => 겁먹기!("{값}을 중성으로 바꿀 수 없습니다."),
         }
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(복제, 디버그, 부분같음, 같음)]
 pub enum 종성 {
     없음,
     ㄱ,
@@ -142,9 +140,9 @@ pub enum 종성 {
 }
 
 impl From<u32> for 종성 {
-    fn from(value: u32) -> Self {
+    fn from(값: u32) -> Self {
         use 종성::*;
-        match value {
+        match 값 {
             0 => 없음,
             1 => ㄱ,
             2 => ㄲ,
@@ -173,7 +171,7 @@ impl From<u32> for 종성 {
             25 => ㅌ,
             26 => ㅍ,
             27 => ㅎ,
-            _ => unreachable!(),
+            _ => 겁먹기!("{값}을 종성으로 바꿀 수 없습니다."),
         }
     }
 }
@@ -182,15 +180,14 @@ pub fn 한글_분해하기(글자: 문자) -> 옵션<(초성, 중성, 종성)> {
     if !('가'..='힣').contains(&글자) {
         return 없음;
     }
-    let 번 = 글자 as u32;
-    let 번 = 번 - 44032;
+    let 번 = 글자 as u32 - 44032;
     let 초 = 번 / 588;
     let 중 = (번 / 28) % 21;
     let 종 = 번 % 28;
     있음((초.into(), 중.into(), 종.into()))
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(복제, 디버그, 부분같음, 같음)]
 pub struct 한글문자 {
     pub 초성: 초성,
     pub 중성: 중성,
@@ -198,24 +195,22 @@ pub struct 한글문자 {
 }
 
 impl TryFrom<문자> for 한글문자 {
-    type Error = char;
+    type Error = 문자;
 
-    fn try_from(글자: 문자) -> Result<Self, Self::Error> {
+    fn try_from(글자: 문자) -> 결과<Self, Self::Error> {
         match 한글_분해하기(글자) {
-            있음((초성, 중성, 종성)) => Ok(한글문자 {
+            있음((초성, 중성, 종성)) => 좋음(한글문자 {
                 초성, 중성, 종성
             }),
-            없음 => Err(글자),
+            없음 => 에러(글자),
         }
     }
 }
 
 #[cfg(test)]
 mod 테스트 {
-    use crate::한글::{종성, 중성, 초성, 한글_분해하기};
+    use super::*;
     use assert_eq as 주장_같음;
-    use Option::None as 없음;
-    use Option::Some as 있음;
 
     #[test]
     fn 한글_분해_테스트() {

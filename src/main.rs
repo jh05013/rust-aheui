@@ -1,10 +1,9 @@
 use clap::Parser as 해독기;
-use std::fmt::Debug as 오류해결;
-use String as 문자열;
 
+use aheui::가명::*;
 use aheui::격자::해독;
 
-#[derive(해독기, 오류해결)]
+#[derive(해독기, 디버그)]
 #[command(author, version, about)]
 struct 실행인자 {
     프로그램_위치: 문자열,

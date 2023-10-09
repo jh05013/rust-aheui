@@ -1,22 +1,19 @@
+use crate::가명::*;
 use crate::한글::{종성, 중성, 초성, 한글문자};
-use char as 문자;
-use Option as 옵션;
-use Option::None as 없음;
-use Option::Some as 있음;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(복제, 디버그, 부분같음, 같음)]
 pub enum 입출력인자 {
     십진수,
     유니코드,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(복제, 디버그, 부분같음, 같음)]
 pub enum 집어넣기인자 {
     입력(입출력인자),
     상수(i64),
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(복제, 디버그, 부분같음, 같음)]
 pub enum 명령 {
     /// ㅎ
     끝냄,
@@ -51,7 +48,7 @@ pub enum 명령 {
     조건,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(복제, 디버그, 부분같음, 같음)]
 pub enum 속도 {
     ㅏ,
     ㅑ,
@@ -63,7 +60,7 @@ pub enum 속도 {
     ㅠ,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(복제, 디버그, 부분같음, 같음)]
 pub enum 속도변환 {
     유지,
     설정하기(속도),
@@ -72,7 +69,7 @@ pub enum 속도변환 {
     모두뒤집기,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(복제, 디버그, 부분같음, 같음)]
 pub struct 한글명령 {
     pub 명령: 옵션<명령>,
     pub 속도변환: 속도변환,
@@ -162,11 +159,10 @@ impl From<한글문자> for 한글명령 {
 }
 
 impl TryFrom<문자> for 한글명령 {
-    type Error = char;
+    type Error = 문자;
 
-    fn try_from(글자: 문자) -> Result<Self, Self::Error> {
-        let 글자 = 한글문자::try_from(글자)?;
-        Ok(글자.into())
+    fn try_from(글자: 문자) -> 결과<Self, Self::Error> {
+        좋음(한글문자::try_from(글자)?.into())
     }
 }
 
@@ -175,36 +171,33 @@ mod 테스트 {
     use super::*;
     use assert as 주장;
     use assert_eq as 주장_같음;
-    use Option::None as 없음;
-    use Option::Some as 있음;
-    use Result::Ok as 좋아;
 
     #[test]
-    fn 한글_분해_테스트() {
+    fn 한글명령_테스트() {
         주장_같음!(
             한글명령::try_from('가'),
-            좋아(한글명령 {
+            좋음(한글명령 {
                 명령: 없음,
                 속도변환: 속도변환::설정하기(속도::ㅏ)
             })
         );
         주장_같음!(
             한글명령::try_from('든'),
-            좋아(한글명령 {
+            좋음(한글명령 {
                 명령: 있음(명령::덧셈),
                 속도변환: 속도변환::위아래뒤집기
             })
         );
         주장_같음!(
             한글명령::try_from('봐'),
-            좋아(한글명령 {
+            좋음(한글명령 {
                 명령: 있음(명령::집어넣기(집어넣기인자::상수(0))),
                 속도변환: 속도변환::유지
             })
         );
         주장_같음!(
             한글명령::try_from('힣'),
-            좋아(한글명령 {
+            좋음(한글명령 {
                 명령: 있음(명령::끝냄),
                 속도변환: 속도변환::좌우뒤집기
             })

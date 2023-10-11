@@ -3,6 +3,9 @@
 #[path = "가명.rs"]
 pub mod 가명;
 
+#[path = "시험.rs"]
+pub mod 시험;
+
 #[path = "한글.rs"]
 pub mod 한글;
 

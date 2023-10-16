@@ -129,7 +129,7 @@ impl 저장공간 for 벡데크<i64> {
     }
 
     fn 집어넣기(&mut self, 값: i64) {
-        self.push_back(값)
+        self.push_front(값)
     }
 
     fn 덧셈(&mut self) -> 부울 {

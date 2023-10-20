@@ -1,94 +1,142 @@
 // kiwiyou님 제공
 
-use std::io::Read;
+use crate::가명::*;
 
-#[derive(Clone)]
-pub struct InputReader<R> {
-    buffer: Vec<u8>,
-    offset: usize,
-    end: usize,
-    stream: R,
+#[derive(복제, 디버그, 부분같음)]
+pub enum 아희입력오류 {
+    파일끝,
+    스트림막힘,
+    Utf8아님,
+    I64아님,
 }
 
-impl<R: Read> InputReader<R> {
-    pub fn with_capacity(capacity: usize, stream: R) -> Self {
+#[derive(복제)]
+pub struct 아희입력기<ㅇ: 읽음> {
+    버퍼: 벡<u8>,
+    방금_읽은_크기: u크기,
+    오프셋: u크기,
+    스트림: ㅇ,
+}
+
+impl<ㅇ: 읽음> 아희입력기<ㅇ> {
+    pub fn 새(버퍼크기: u크기, 스트림: ㅇ) -> Self {
         Self {
-            buffer: vec![0; capacity],
-            offset: capacity,
-            end: capacity,
-            stream,
+            버퍼: vec![0; 버퍼크기],
+            방금_읽은_크기: 0,
+            오프셋: 0,
+            스트림,
         }
     }
-    fn skip_whitespace(&mut self) {
-        while self.end > 0 {
-            if let Some(i) = self.remain().iter().position(|&b| b > b' ') {
-                self.offset += i;
-                break;
+
+    fn 버퍼에_읽기(&mut self) -> Result<u크기, 아희입력오류> {
+        let 좋음(수) = self.스트림.read(&mut self.버퍼) else {
+			return 에러(아희입력오류::스트림막힘);
+		};
+        self.방금_읽은_크기 = 수;
+        if 수 == 0 {
+            return 에러(아희입력오류::파일끝);
+        }
+        좋음(수)
+    }
+
+    fn 바이트_보기(&mut self) -> Result<u8, 아희입력오류> {
+        if self.오프셋 == self.방금_읽은_크기 {
+            self.오프셋 = 0;
+            self.버퍼에_읽기()?;
+        }
+        좋음(self.버퍼[self.오프셋])
+    }
+
+    fn 바이트_읽기(&mut self) -> Result<u8, 아희입력오류> {
+        let 바 = self.바이트_보기()?;
+        self.오프셋 += 1;
+        좋음(바)
+    }
+
+    pub fn 문자_읽기(&mut self) -> Result<char, 아희입력오류> {
+        let 바 = self.바이트_읽기()?;
+        match 바.leading_ones() {
+            0 => {
+                좋음(바 as char)
             }
-            self.fill();
-        }
-    }
-    fn remain(&self) -> &[u8] {
-        &self.buffer[self.offset..self.end]
-    }
-    fn fill(&mut self) {
-        let len = self.stream.read(&mut self.buffer).unwrap();
-        self.end = len;
-        self.offset = 0;
-    }
-    pub fn read_char(&mut self) -> Option<char> {
-        if self.remain().is_empty() {
-            self.fill();
-        }
-        let first = *self.remain().get(0)?;
-        self.offset += 1;
-        match first.leading_ones() {
-            0 => Some(first as char),
-            len @ 2..=4 => {
-                let mut code = (first & ((1 << (8 - len)) - 1)) as u32;
-                let mut count = 1;
-                while self.end > 0 {
-                    for (i, &b) in self.remain().iter().enumerate() {
-                        if count >= len || b & 0b1000_0000 == 0 {
-                            self.offset += i;
-                            return None;
-                        }
-                        code <<= 6;
-                        code |= (b & 0b0011_1111) as u32;
-                        count += 1;
+            길이 @ (2..=4) => {
+                let mut 코드: u32 = (바 & 0b1111) as u32;
+                for _ in 0..길이 - 1 {
+                    let 바 = self.바이트_읽기()?;
+                    if 바 & 0b10000000 == 0 {
+                        return 에러(아희입력오류::Utf8아님);
                     }
-                    self.fill();
+                    코드 = 코드 << 6 | (바 & 0b111111) as u32;
                 }
-                char::from_u32(code)
+                char::from_u32(코드).ok_or(아희입력오류::Utf8아님)
             }
-            _ => None,
+            _ => {
+                에러(아희입력오류::Utf8아님)
+            }
         }
     }
-    pub fn read_integer(&mut self) -> Option<i64> {
-        self.skip_whitespace();
-        let mut integer = 0;
-        let mut is_read_sign = false;
-        let mut is_read_number = false;
-        let mut neg = false;
-        'consume_buffer: while self.end > 0 {
-            for (i, &b) in self.remain().iter().enumerate() {
-                if !is_read_sign && b == b'-' {
-                    neg = true;
-                    is_read_sign = true;
-                } else if (b'0'..=b'9').contains(&b) {
-                    is_read_sign = true;
-                    is_read_number = true;
-                    integer = integer * 10 + (b - b'0') as u64;
-                } else {
-                    self.offset += i;
-                    break 'consume_buffer;
-                }
-            }
-            self.fill();
+
+    pub fn 정수_읽기(&mut self) -> Result<i64, 아희입력오류> {
+        let mut 문자열 = 문자열::new();
+
+        let mut 바 = self.바이트_읽기()?;
+        while 바 <= b' ' {
+            바 = self.바이트_읽기()?;
         }
-        if neg {
-            integer = integer.wrapping_neg();
+        while 바 > b' ' {
+            문자열.push(바 as char);
+            바 = self.바이트_읽기()?;
         }
-        is_read_number.then_some(integer as i64)
+        문자열.parse::<i64>().map_err(|_| 아희입력오류::I64아님)
+    }
+}
+
+#[cfg(test)]
+mod 테스트 {
+    use super::*;
+
+    #[test]
+    fn 테스트_입력_아스키() {
+        let mut 입력기 = 아희입력기::<&[u8]>::새(100, "ah U\n3?".as_bytes());
+        assert_eq!(입력기.문자_읽기(), 좋음('a'));
+        assert_eq!(입력기.문자_읽기(), 좋음('h'));
+        assert_eq!(입력기.문자_읽기(), 좋음(' '));
+        assert_eq!(입력기.문자_읽기(), 좋음('U'));
+        assert_eq!(입력기.문자_읽기(), 좋음('\n'));
+        assert_eq!(입력기.문자_읽기(), 좋음('3'));
+        assert_eq!(입력기.문자_읽기(), 좋음('?'));
+        assert_eq!(입력기.문자_읽기(), 에러(아희입력오류::파일끝));
+    }
+
+    #[test]
+    fn 테스트_입력_유니코드() {
+        // 희怒 ♥🥌
+        let mut 입력기 = 아희입력기::<&[u8]>::새(
+            100,
+            &[
+                237, 157, 172, 230, 128, 146, 32, 226, 153, 165, 240, 159, 165, 140,
+            ],
+        );
+        assert_eq!(입력기.문자_읽기(), 좋음('희'));
+        assert_eq!(입력기.문자_읽기(), 좋음('怒'));
+        assert_eq!(입력기.문자_읽기(), 좋음(' '));
+        assert_eq!(입력기.문자_읽기(), 좋음('♥'));
+        assert_eq!(입력기.문자_읽기(), 좋음('🥌'));
+        assert_eq!(입력기.문자_읽기(), 에러(아희입력오류::파일끝));
+    }
+
+    #[test]
+    fn 테스트_입력_정수() {
+        let mut 입력기 = 아희입력기::<&[u8]>::새(
+            100,
+            " 1 203456789012345   -3479897897878   \n\t  0 0050 -05\t\t".as_bytes(),
+        );
+        assert_eq!(입력기.정수_읽기(), 좋음(1));
+        assert_eq!(입력기.정수_읽기(), 좋음(203456789012345));
+        assert_eq!(입력기.정수_읽기(), 좋음(-3479897897878));
+        assert_eq!(입력기.정수_읽기(), 좋음(0));
+        assert_eq!(입력기.정수_읽기(), 좋음(50));
+        assert_eq!(입력기.정수_읽기(), 좋음(-5));
+        assert_eq!(입력기.정수_읽기(), 에러(아희입력오류::파일끝));
     }
 }
